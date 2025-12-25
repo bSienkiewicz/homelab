@@ -105,6 +105,11 @@ All services are defined in `docker-compose.yml`:
 - **Portainer**: Port 9000
 - **Data**: `/srv/data/portainer/`
 
+### Workflow Automation
+- **n8n**: Port 5678
+- **Data**: `/srv/data/n8n/`
+- Configure authentication and webhook URL via environment variables in `secrets.env`
+
 ### File Sharing
 - **Samba**: Ports 445 (SMB), 139 (NetBIOS)
 - **Shares**: `/srv/smb/`
