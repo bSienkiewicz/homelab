@@ -97,9 +97,9 @@ All services are defined in `docker-compose.yml`:
 - **Data**: `/srv/data/nginx/`
 
 ### Dynamic DNS
-- **No-IP**: Port 8000 (Web UI)
+- **No-IP**: Port 8008 (Web UI)
 - **Data**: `/srv/data/noip/`
-- Configure via web UI at http://your-server:8000
+- Configure via web UI at http://your-server:8008
 
 ### Docker Management
 - **Portainer**: Port 9000

@@ -28,7 +28,7 @@ services:
     container_name: noip-ddns
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8008:8008"
     volumes:
       - /srv/data/noip:/updater/data
     env_file:
