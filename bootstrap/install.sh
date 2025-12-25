@@ -85,8 +85,8 @@ fi
 # Create directory structure
 log_info "Creating directory structure..."
 mkdir -p /srv/data
-mkdir -p /srv/data/nginx/ssl
-mkdir -p /srv/data/nginx/html
+mkdir -p /srv/data/nginx/data
+mkdir -p /srv/data/nginx/letsencrypt
 mkdir -p /srv/data/noip
 mkdir -p /srv/data/media
 mkdir -p /srv/data/jellyfin
@@ -109,6 +109,7 @@ ufw default allow outgoing
 ufw allow 22/tcp comment 'SSH'
 ufw allow 80/tcp comment 'HTTP'
 ufw allow 443/tcp comment 'HTTPS'
+ufw allow 8080/tcp comment 'NGINX Proxy Manager Admin' || true
 ufw allow 445/tcp comment 'SMB'
 ufw allow 139/tcp comment 'NetBIOS'
 

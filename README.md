@@ -35,7 +35,7 @@ A fully replicable, disposable homelab built on Ubuntu Server with Docker Compos
 
 5. **Access services**:
    - Services are accessible via direct ports (e.g., `http://your-server-ip:7878` for Radarr)
-   - Configure reverse proxy in `docker/nginx/conf/conf.d/` to access via domain names
+   - NGINX Proxy Manager: http://your-server-ip:8080 (default: `admin@example.com` / `changeme`)
    - All services will auto-start on boot via systemd service
 
 ### Auto-Start on Boot
@@ -74,35 +74,29 @@ cd docker/<stack-name> && docker compose logs -f
 
 ## Services
 
-### Reverse Proxy (NGINX)
+### Reverse Proxy (NGINX Proxy Manager)
 
 - **Location**: `docker/nginx/`
-- **Configuration**: File-based in `docker/nginx/conf/`
-- **Data**: `/srv/data/nginx/ssl` (SSL certificates), `/srv/data/nginx/html` (static files)
-- **Ports**: 80 (HTTP), 443 (HTTPS)
+- **Admin UI**: http://your-server:8080
+- **Data**: `/srv/data/nginx/` (all configuration and SSL certificates - fully backupable)
+- **Ports**: 80 (HTTP), 443 (HTTPS), 8080 (Admin UI)
 
-**Configuration**: Edit `docker/nginx/conf/conf.d/*.conf` files to add proxy hosts.
+**Initial Setup**:
+1. Access the admin UI: http://your-server:8080
+2. Default login:
+   - Email: `admin@example.com`
+   - Password: `changeme`
+3. **Change the password immediately** after first login
 
-**Example configuration** (add to `docker/nginx/conf/conf.d/radarr.conf`):
-```nginx
-server {
-    listen 80;
-    server_name radarr.example.com;
-    
-    location / {
-        proxy_pass http://radarr:7878;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
+**Configuration**: All configuration is done through the Web UI. The entire configuration database and SSL certificates are stored in `/srv/data/nginx/` and are automatically backed up when you backup `/srv/data/`.
 
-After editing config files, reload nginx:
-```bash
-cd docker/nginx && docker compose restart
-```
+**Backup**: The entire NGINX Proxy Manager configuration is stored in:
+- `/srv/data/nginx/data/` - Configuration database and settings
+- `/srv/data/nginx/letsencrypt/` - SSL certificates
+
+Both directories are part of `/srv/data/` and are included in your regular backups.
+
+**Direct Port Access**: Yes! Even with NGINX Proxy Manager running, you can still access services directly via their exposed ports (e.g., `http://your-server:7878` for Radarr). NGINX Proxy Manager is optional for reverse proxy/domain routing - ports remain accessible.
 
 ### No-IP Dynamic DNS
 
