@@ -348,13 +348,14 @@ services:
     container_name: glance
     restart: unless-stopped
     ports:
-      - "7575:7575"
+      - "8081:8080"
     volumes:
-      - /srv/data/glance:/app/config
+      - ./config/glance.yml:/app/config/glance.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7575"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3

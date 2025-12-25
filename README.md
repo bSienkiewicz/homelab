@@ -106,8 +106,8 @@ All services are defined in `docker-compose.yml`:
 - **Data**: `/srv/data/portainer/`
 
 ### Dashboard
-- **Glance**: Port 7575
-- **Data**: `/srv/data/glance/`
+- **Glance**: Port 8081
+- **Configuration**: `config/glance.yml` (mounted directly from repo)
 - Dashboard/startpage for organizing and accessing all services
 
 ### Workflow Automation

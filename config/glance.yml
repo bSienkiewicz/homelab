@@ -1,0 +1,55 @@
+# Glance Dashboard Configuration
+# See: https://github.com/glanceapp/glance
+
+pages:
+  - name: Home
+    columns:
+      - size: small
+        widgets:
+          - type: system
+          - type: docker
+            socket: "/var/run/docker.sock"
+      - size: full
+        widgets:
+          - type: links
+            title: "Services"
+            links:
+              - name: "NGINX Proxy Manager"
+                url: "http://localhost:8880"
+                icon: "globe"
+              - name: "Portainer"
+                url: "http://localhost:9000"
+                icon: "docker"
+              - name: "Jellyfin"
+                url: "http://localhost:8096"
+                icon: "play"
+              - name: "Radarr"
+                url: "http://localhost:7878"
+                icon: "film"
+              - name: "Sonarr"
+                url: "http://localhost:8989"
+                icon: "tv"
+              - name: "qBittorrent"
+                url: "http://localhost:8080"
+                icon: "download"
+              - name: "Prowlarr"
+                url: "http://localhost:9696"
+                icon: "search"
+              - name: "Jellyseerr"
+                url: "http://localhost:5055"
+                icon: "star"
+              - name: "Bazarr"
+                url: "http://localhost:6767"
+                icon: "subtitles"
+              - name: "Flaresolverr"
+                url: "http://localhost:8191"
+                icon: "shield"
+              - name: "No-IP"
+                url: "http://localhost:8008"
+                icon: "network"
+              - name: "n8n"
+                url: "http://localhost:5678"
+                icon: "workflow"
+              - name: "Glance"
+                url: "http://localhost:8081"
+                icon: "dashboard"
