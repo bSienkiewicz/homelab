@@ -7,11 +7,14 @@ services:
       - "${NOIP_LISTENING_PORT:-8000}:8000"
     volumes:
       - /srv/data/noip:/updater/data
+    env_file:
+      - ../../env/common.env
+      - ../../env/secrets.env
     environment:
       - PERIOD=5m
       - LOG_LEVEL=info
-      - PUBLICIP_FETCHERS=ipifyorg
+      - PUBLICIP_HTTP_PROVIDERS=ipify
       - PROVIDERS=noip
-      - NOIP_USERNAME=${NOIP_USER}
-      - NOIP_PASSWORD=${NOIP_PASS}
-      - NOIP_HOSTNAMES=${NOIP_HOST}
+      - NOIP_USERNAME=${NOIP_USER:-}
+      - NOIP_PASSWORD=${NOIP_PASS:-}
+      - NOIP_HOSTNAMES=${NOIP_HOST:-}
