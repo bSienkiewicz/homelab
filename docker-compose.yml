@@ -119,6 +119,24 @@ services:
       timeout: 10s
       retries: 3
 
+  # CloudFlare Bypass Proxy
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - "8191:8191"
+    environment:
+      - LOG_LEVEL=${FLARESOLVERR_LOG_LEVEL:-info}
+      - TZ=${TZ:-UTC}
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8191"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Media Stack - Indexers
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -203,8 +221,14 @@ services:
     volumes:
       - /srv/data/media/qbittorrent:/config
       - /srv/media/downloads:/downloads
-    networks:
-      - proxy
+    
+    # IF USING GLUETUN, COMMENT OUT THE FOLLOWING:
+    # networks:
+    #  - proxy
+
+    # IF NOT USING GLUETUN, COMMENT THE FOLLOWING:
+    network_mode: service:gluetun
+    
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080"]
       interval: 30s
