@@ -149,6 +149,17 @@ Then restart the container to use environment variables.
 - DLNA support (ports 7359/udp, 1900/udp)
 - Automatically scans media directories from the media stack
 
+### Samba
+
+- **Location**: `docker/samba/`
+- **Data**: `/srv/data/samba/` (shared directory)
+
+**Access**: 
+- SMB/CIFS: `\\your-server-ip\smb` or `smb://your-server-ip/smb`
+- Ports: 445 (SMB), 139 (NetBIOS)
+- Username: `samba`
+- Password: Set via `SAMBA_PASSWORD` in `env/secrets.env` (default: `samba`)
+
 ## Backup
 
 ### What to Backup

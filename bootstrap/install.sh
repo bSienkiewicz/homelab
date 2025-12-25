@@ -90,6 +90,7 @@ mkdir -p /srv/data/nginx/html
 mkdir -p /srv/data/noip
 mkdir -p /srv/data/media
 mkdir -p /srv/data/jellyfin
+mkdir -p /srv/data/samba
 mkdir -p /srv/media/movies
 mkdir -p /srv/media/tv
 mkdir -p /srv/media/music
