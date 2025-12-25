@@ -90,15 +90,16 @@ mkdir -p /srv/data/nginx/html
 mkdir -p /srv/data/noip
 mkdir -p /srv/data/media
 mkdir -p /srv/data/jellyfin
-mkdir -p /srv/data/samba
 mkdir -p /srv/media/movies
 mkdir -p /srv/media/tv
 mkdir -p /srv/media/music
 mkdir -p /srv/media/downloads
+mkdir -p /srv/smb
 
 # Set permissions (adjust as needed)
 chown -R $SUDO_USER:$SUDO_USER /srv/data 2>/dev/null || true
 chown -R $SUDO_USER:$SUDO_USER /srv/media 2>/dev/null || true
+chown -R $SUDO_USER:$SUDO_USER /srv/smb 2>/dev/null || true
 
 # Configure firewall
 log_info "Configuring firewall (UFW)..."
@@ -108,6 +109,8 @@ ufw default allow outgoing
 ufw allow 22/tcp comment 'SSH'
 ufw allow 80/tcp comment 'HTTP'
 ufw allow 443/tcp comment 'HTTPS'
+ufw allow 445/tcp comment 'SMB'
+ufw allow 139/tcp comment 'NetBIOS'
 
 # Create shared Docker network for proxy
 log_info "Creating shared Docker network..."

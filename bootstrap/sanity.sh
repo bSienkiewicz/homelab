@@ -57,6 +57,7 @@ fi
 # Directory checks
 check "Directory /srv/data exists" test -d /srv/data
 check "Directory /srv/media exists" test -d /srv/media
+check "Directory /srv/smb exists" test -d /srv/smb
 
 # File checks
 check "env/common.env exists" test -f env/common.env

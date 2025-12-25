@@ -9,7 +9,7 @@ services:
     environment:
       - TZ=${TZ:-UTC}
     volumes:
-      - /srv/data/samba:/shares
+      - /srv/smb:/shares
     command: >
       -s "smb;/shares;yes;no;yes;all;none"
       -u "samba;${SAMBA_PASSWORD:-samba}"

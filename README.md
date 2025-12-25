@@ -152,7 +152,7 @@ Then restart the container to use environment variables.
 ### Samba
 
 - **Location**: `docker/samba/`
-- **Data**: `/srv/data/samba/` (shared directory)
+- **Shares**: `/srv/smb/`
 
 **Access**: 
 - SMB/CIFS: `\\your-server-ip\smb` or `smb://your-server-ip/smb`
@@ -167,6 +167,7 @@ Then restart the container to use environment variables.
 - **`/srv/data/`** - All container configs and databases (critical)
 - **`env/secrets.env`** - Secrets file (critical)
 - **Git repository** - Infrastructure as code
+- **`/srv/smb/`** - Samba shares (backup separately as needed)
 
 ### What NOT to Backup (Disposable)
 
