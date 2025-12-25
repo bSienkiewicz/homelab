@@ -108,6 +108,7 @@ services:
       - WIREGUARD_ADDRESSES=${GLUETUN_WIREGUARD_ADDRESSES:-}
       - WIREGUARD_PRESHARED_KEY=${GLUETUN_WIREGUARD_PRESHARED_KEY:-}
       - UPDATER_PERIOD=${GLUETUN_UPDATER_PERIOD:-24h}
+      - FREE_ONLY=${GLUETUN_FREE_ONLY:-on}
     volumes:
       - /srv/data/gluetun:/gluetun
     networks:
