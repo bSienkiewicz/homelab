@@ -87,6 +87,76 @@ services:
       timeout: 10s
       retries: 3
 
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/media/overseerr:/config
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5055"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - "6767:6767"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/media/bazarr:/config
+      - /srv/media/movies:/movies
+      - /srv/media/tv:/tv
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:6767"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+      - "7359:7359/udp"
+      - "1900:1900/udp"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_PUBLISHED_SERVER_URL:-}
+    volumes:
+      - /srv/data/jellyfin:/config
+      - /srv/media/movies:/data/movies:ro
+      - /srv/media/tv:/data/tv:ro
+      - /srv/media/music:/data/music:ro
+    devices:
+      - /dev/dri:/dev/dri
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8096"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   proxy:
     external: true

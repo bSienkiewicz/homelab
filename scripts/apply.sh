@@ -64,13 +64,15 @@ apply_stack() {
     log_info "Applying stack: $stack_name"
     cd "$stack_dir"
     
-    # Load environment files (handle spaces and special chars)
+    # Export environment variables for ${VAR} substitution in compose files
     set -a
     source "$REPO_ROOT/env/common.env" 2>/dev/null || true
     source "$REPO_ROOT/env/secrets.env" 2>/dev/null || true
     set +a
     
     # Apply the stack
+    # env_file in compose files will load variables into containers
+    # Exported variables above are used for ${VAR} substitution
     docker compose up -d --remove-orphans
     
     cd "$REPO_ROOT"
@@ -91,15 +93,15 @@ if [[ -d "docker/noip" ]]; then
     apply_stack "docker/noip"
 fi
 
-# 3. Media stack
-if [[ -d "docker/media" ]]; then
-    apply_stack "docker/media"
+# 3. ARR stack (media services)
+if [[ -d "docker/arr" ]]; then
+    apply_stack "docker/arr"
 fi
 
 # 4. Any other stacks (alphabetically)
 for stack_dir in docker/*/; do
     stack_name=$(basename "$stack_dir")
-    if [[ "$stack_name" != "nginx" && "$stack_name" != "noip" && "$stack_name" != "media" ]]; then
+    if [[ "$stack_name" != "nginx" && "$stack_name" != "noip" && "$stack_name" != "arr" && "$stack_name" != "jellyfin" ]]; then
         apply_stack "$stack_dir"
     fi
 done

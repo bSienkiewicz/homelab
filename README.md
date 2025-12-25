@@ -81,47 +81,24 @@ cd docker/<stack-name> && docker compose logs -f
 - **Data**: `/srv/data/nginx/` (all configuration and SSL certificates - fully backupable)
 - **Ports**: 80 (HTTP), 443 (HTTPS), 8080 (Admin UI)
 
-**Initial Setup**:
-1. Access the admin UI: http://your-server:8080
-2. Default login:
-   - Email: `admin@example.com`
-   - Password: `changeme`
-3. **Change the password immediately** after first login
-
-**Configuration**: All configuration is done through the Web UI. The entire configuration database and SSL certificates are stored in `/srv/data/nginx/` and are automatically backed up when you backup `/srv/data/`.
 
 **Backup**: The entire NGINX Proxy Manager configuration is stored in:
 - `/srv/data/nginx/data/` - Configuration database and settings
 - `/srv/data/nginx/letsencrypt/` - SSL certificates
 
-Both directories are part of `/srv/data/` and are included in your regular backups.
-
-**Direct Port Access**: Yes! Even with NGINX Proxy Manager running, you can still access services directly via their exposed ports (e.g., `http://your-server:7878` for Radarr). NGINX Proxy Manager is optional for reverse proxy/domain routing - ports remain accessible.
-
 ### No-IP Dynamic DNS
 
 - **Location**: `docker/noip/`
 - **Data**: `/srv/data/noip/`
-- **Web UI**: http://your-server:8000 (optional, for monitoring)
+- **Web UI**: http://your-server:8000
 
-**Configuration**: Set the following in `env/secrets.env`:
-- `NOIP_USER` - Your No-IP username
-- `NOIP_PASS` - Your No-IP password (or DDNS key)
-- `NOIP_HOST` - Your hostname (e.g., `example.ddns.net`)
+**Configuration**: Configure via the web UI after first start in `/srv/data/noip/config.json` manually.
 
-The container will automatically update your No-IP hostname when your public IP changes.
+### Media Stack (ARR)
 
-**Troubleshooting**: If the container fails to start with "fetcher is not valid" error, delete any existing config file:
-```bash
-rm /srv/data/noip/config.json
-```
-Then restart the container to use environment variables.
-
-### Media Stack
-
-- **Location**: `docker/media/`
-- **Services**: Prowlarr, Radarr, Sonarr, qBittorrent
-- **Data**: `/srv/data/media/`
+- **Location**: `docker/arr/`
+- **Services**: Prowlarr, Radarr, Sonarr, qBittorrent, Overseerr, Bazarr, Jellyfin
+- **Data**: `/srv/data/media/` and `/srv/data/jellyfin/`
 - **Media**: `/srv/media/`
 
 **Access**: Services are accessible directly via IP:PORT:
@@ -129,19 +106,16 @@ Then restart the container to use environment variables.
 - **Radarr**: http://your-server:7878
 - **Sonarr**: http://your-server:8989
 - **qBittorrent**: http://your-server:8080
+- **Overseerr**: http://your-server:5055
+- **Bazarr**: http://your-server:6767
+- **Jellyfin**: http://your-server:8096
 
-### Jellyfin Media Server
+### Portainer
 
-- **Location**: `docker/jellyfin/`
-- **Data**: `/srv/data/jellyfin/`
-- **Media**: Mounts from `/srv/media/` (movies, tv, music)
+- **Location**: `docker/portainer/`
+- **Data**: `/srv/data/portainer/`
+- **Access**: http://your-server:9000
 
-**Access**: http://your-server:8096
-
-**Features**:
-- Hardware acceleration enabled (via `/dev/dri` device passthrough)
-- DLNA support (ports 7359/udp, 1900/udp)
-- Automatically scans media directories from the media stack
 
 ### Samba
 

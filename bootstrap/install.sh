@@ -82,24 +82,18 @@ else
     log_info "Docker Compose already installed, skipping..."
 fi
 
-# Create directory structure
+# Create top-level directories only
+# Containers will create subdirectories automatically with proper permissions
 log_info "Creating directory structure..."
 mkdir -p /srv/data
-mkdir -p /srv/data/nginx/data
-mkdir -p /srv/data/nginx/letsencrypt
-mkdir -p /srv/data/noip
-mkdir -p /srv/data/media
-mkdir -p /srv/data/jellyfin
-mkdir -p /srv/media/movies
-mkdir -p /srv/media/tv
-mkdir -p /srv/media/music
-mkdir -p /srv/media/downloads
+mkdir -p /srv/media
 mkdir -p /srv/smb
 
-# Set permissions (adjust as needed)
+# Set base permissions (containers will create subdirectories as needed)
 chown -R $SUDO_USER:$SUDO_USER /srv/data 2>/dev/null || true
 chown -R $SUDO_USER:$SUDO_USER /srv/media 2>/dev/null || true
 chown -R $SUDO_USER:$SUDO_USER /srv/smb 2>/dev/null || true
+chmod -R 775 /srv/smb 2>/dev/null || true
 
 # Configure firewall
 log_info "Configuring firewall (UFW)..."

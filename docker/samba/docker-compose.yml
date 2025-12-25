@@ -6,6 +6,9 @@ services:
     ports:
       - "445:445"
       - "139:139"
+    env_file:
+      - ../../env/common.env
+      - ../../env/secrets.env
     environment:
       - TZ=${TZ:-UTC}
     volumes:
