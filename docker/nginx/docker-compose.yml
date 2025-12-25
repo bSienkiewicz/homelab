@@ -6,7 +6,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:81"  # Admin UI
+      - "8880:81"  # Admin UI
     volumes:
       - /srv/data/nginx/data:/data
       - /srv/data/nginx/letsencrypt:/etc/letsencrypt
