@@ -105,6 +105,11 @@ All services are defined in `docker-compose.yml`:
 - **Portainer**: Port 9000
 - **Data**: `/srv/data/portainer/`
 
+### Dashboard
+- **Homarr**: Port 7575
+- **Data**: `/srv/data/homarr/`
+- Dashboard/startpage for organizing and accessing all services
+
 ### Workflow Automation
 - **n8n**: Port 5678
 - **Data**: `/srv/data/n8n/`

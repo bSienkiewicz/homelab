@@ -342,6 +342,28 @@ services:
       timeout: 10s
       retries: 3
 
+  # Dashboard / Startpage
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    restart: unless-stopped
+    ports:
+      - "7575:7575"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/homarr:/app/data/configs
+      - /srv/data/homarr/icons:/app/public/icons
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7575"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   proxy:
     external: true
