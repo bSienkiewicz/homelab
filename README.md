@@ -136,6 +136,19 @@ Then restart the container to use environment variables.
 - **Sonarr**: http://your-server:8989
 - **qBittorrent**: http://your-server:8080
 
+### Jellyfin Media Server
+
+- **Location**: `docker/jellyfin/`
+- **Data**: `/srv/data/jellyfin/`
+- **Media**: Mounts from `/srv/media/` (movies, tv, music)
+
+**Access**: http://your-server:8096
+
+**Features**:
+- Hardware acceleration enabled (via `/dev/dri` device passthrough)
+- DLNA support (ports 7359/udp, 1900/udp)
+- Automatically scans media directories from the media stack
+
 ## Backup
 
 ### What to Backup

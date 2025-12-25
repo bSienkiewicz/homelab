@@ -89,7 +89,11 @@ mkdir -p /srv/data/nginx/ssl
 mkdir -p /srv/data/nginx/html
 mkdir -p /srv/data/noip
 mkdir -p /srv/data/media
-mkdir -p /srv/media
+mkdir -p /srv/data/jellyfin
+mkdir -p /srv/media/movies
+mkdir -p /srv/media/tv
+mkdir -p /srv/media/music
+mkdir -p /srv/media/downloads
 
 # Set permissions (adjust as needed)
 chown -R $SUDO_USER:$SUDO_USER /srv/data 2>/dev/null || true
@@ -150,4 +154,3 @@ log_info "3. Run: ./scripts/apply.sh"
 log_info ""
 log_info "Services will automatically start on boot via systemd."
 log_info "Note: If you were added to the docker group, log out and back in first."
-

@@ -70,7 +70,7 @@ apply_stack() {
     source "$REPO_ROOT/env/secrets.env" 2>/dev/null || true
     set +a
     
-    # Apply the stack (this destroys drift)
+    # Apply the stack
     docker compose up -d --remove-orphans
     
     cd "$REPO_ROOT"

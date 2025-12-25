@@ -13,8 +13,5 @@ services:
     environment:
       - PERIOD=5m
       - LOG_LEVEL=info
-      - PUBLICIP_HTTP_PROVIDERS=ipify
+      - PUBLICIP_HTTP_PROVIDERS=all
       - PROVIDERS=noip
-      - NOIP_USERNAME=${NOIP_USER:-}
-      - NOIP_PASSWORD=${NOIP_PASS:-}
-      - NOIP_HOSTNAMES=${NOIP_HOST:-}
