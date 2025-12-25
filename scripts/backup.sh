@@ -54,7 +54,7 @@ if [[ ! -d "/srv/backup" ]]; then
 fi
 
 # Create backup with error output visible
-log_info "Backing up /srv/data to ${BACKUP_PATH}..."
+log_info "Backing up service data to [[${BACKUP_PATH}]]"
 TAR_OUTPUT=$(tar -czf "${BACKUP_PATH}" -C /srv data 2>&1)
 TAR_EXIT_CODE=$?
 
