@@ -88,12 +88,15 @@ log_info "Creating directory structure..."
 mkdir -p /srv/data
 mkdir -p /srv/media
 mkdir -p /srv/smb
+mkdir -p /srv/backup
 
 # Set base permissions (containers will create subdirectories as needed)
 chown -R $SUDO_USER:$SUDO_USER /srv/data 2>/dev/null || true
 chown -R $SUDO_USER:$SUDO_USER /srv/media 2>/dev/null || true
 chown -R $SUDO_USER:$SUDO_USER /srv/smb 2>/dev/null || true
+chown -R $SUDO_USER:$SUDO_USER /srv/backup 2>/dev/null || true
 chmod -R 775 /srv/smb 2>/dev/null || true
+chmod -R 755 /srv/backup 2>/dev/null || true
 
 # Configure firewall
 log_info "Configuring firewall (UFW)..."

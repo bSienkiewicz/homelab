@@ -128,10 +128,21 @@ All services are defined in `docker-compose.yml`:
 
 ## Backup
 
+### Manual Backup
+```bash
+./scripts/backup.sh
+```
+
+Creates a backup archive in `/srv/backup/`:
+- Format: `backup_<branch>_<commit>_<timestamp>.tar.gz`
+- Contains: `/srv/data/` (all container configs and databases)
+- Keeps last 10 backups automatically
+
 ### What to Backup
 - **`/srv/data/`** - All container configs and databases (critical)
 - **`secrets.env`** - Secrets file (critical)
 - **Git repository** - Infrastructure as code
+- **`/srv/backup/`** - Backup archives (optional, can be regenerated)
 
 ### What NOT to Backup (Disposable)
 - OS
@@ -175,4 +186,3 @@ The `--remove-orphans` flag automatically removes containers that are no longer 
 **Port conflicts**:
 - Check what's using the port: `sudo netstat -tulpn | grep <port>`
 - Adjust ports in `docker-compose.yml` if needed
-
