@@ -106,8 +106,8 @@ All services are defined in `docker-compose.yml`:
 - **Data**: `/srv/data/portainer/`
 
 ### Dashboard
-- **Homarr**: Port 7575
-- **Data**: `/srv/data/homarr/`
+- **Glance**: Port 7575
+- **Data**: `/srv/data/glance/`
 - Dashboard/startpage for organizing and accessing all services
 
 ### Workflow Automation

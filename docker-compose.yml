@@ -343,19 +343,14 @@ services:
       retries: 3
 
   # Dashboard / Startpage
-  homarr:
-    image: ghcr.io/ajnart/homarr:latest
-    container_name: homarr
+  glance:
+    image: glanceapp/glance:latest
+    container_name: glance
     restart: unless-stopped
     ports:
       - "7575:7575"
-    environment:
-      - PUID=${PUID:-1000}
-      - PGID=${PGID:-1000}
-      - TZ=${TZ:-UTC}
     volumes:
-      - /srv/data/homarr:/app/data/configs
-      - /srv/data/homarr/icons:/app/public/icons
+      - /srv/data/glance:/app/config
     networks:
       - proxy
     healthcheck:
