@@ -107,6 +107,4 @@ done
 log_info ""
 log_info "Convergence complete!"
 log_info ""
-log_info "To check status: docker compose ps (in each stack directory)"
-log_info "To view logs: docker compose logs -f (in each stack directory)"
-
+log_info "To check status: ./scripts/status.sh"

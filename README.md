@@ -1,14 +1,6 @@
 # Homelab Infrastructure
 
 A fully replicable, disposable homelab built on Ubuntu Server with Docker Compose.
-## Architecture
-
-- **OS**: Ubuntu Server LTS
-- **Orchestration**: Docker + Docker Compose
-- **Pattern**: Multiple independent compose stacks (not one monolith)
-- **Networking**: Shared external Docker network (`proxy`) for service communication
-- **Reverse Proxy**: NGINX Proxy Manager (containerized, Web UI)
-- **Data**: Persistent data in `/srv/data`, media in `/srv/media`
 
 ## Quick Start
 
@@ -48,7 +40,7 @@ A fully replicable, disposable homelab built on Ubuntu Server with Docker Compos
 
 ### Auto-Start on Boot
 
-All services automatically start on boot via a systemd service installed during bootstrap. The service runs `scripts/apply.sh` which ensures all stacks are up and running.
+All services automatically start on boot via a systemd service installed during bootstrap.
 
 **Manual control**:
 ```bash
@@ -60,24 +52,24 @@ sudo journalctl -u homelab -f   # View logs
 
 ## Daily Operations
 
-**Update and apply changes**:
+**Update repository and apply changes**:
 ```bash
-git pull
-./scripts/apply.sh
+./scripts/update.sh
 ```
 
-The systemd service will also auto-start everything on boot, so manual intervention is only needed for updates.
-
-**Check status**:
+**Check status of all containers**:
 ```bash
-cd docker/nginx && docker compose ps
-cd docker/noip && docker compose ps
-cd docker/media && docker compose ps
+./scripts/status.sh
+```
+
+**Check status of specific stack**:
+```bash
+cd docker/<stack-name> && docker compose ps
 ```
 
 **View logs**:
 ```bash
-cd docker/nginx && docker compose logs -f
+cd docker/<stack-name> && docker compose logs -f
 ```
 
 ## Services
@@ -89,7 +81,7 @@ cd docker/nginx && docker compose logs -f
 - **Data**: `/srv/data/nginx/ssl` (SSL certificates), `/srv/data/nginx/html` (static files)
 - **Ports**: 80 (HTTP), 443 (HTTPS)
 
-**Configuration**: Edit `docker/nginx/conf/conf.d/*.conf` files to add proxy hosts. All config is in Git for full reproducibility.
+**Configuration**: Edit `docker/nginx/conf/conf.d/*.conf` files to add proxy hosts.
 
 **Example configuration** (add to `docker/nginx/conf/conf.d/radarr.conf`):
 ```nginx
@@ -112,8 +104,6 @@ After editing config files, reload nginx:
 cd docker/nginx && docker compose restart
 ```
 
-**Direct Port Access**: Yes! Even with NGINX running, you can still access services directly via their exposed ports (e.g., `http://your-server:7878` for Radarr). NGINX is optional for reverse proxy/domain routing - ports remain accessible.
-
 ### No-IP Dynamic DNS
 
 - **Location**: `docker/noip/`
@@ -121,7 +111,6 @@ cd docker/nginx && docker compose restart
 - **Web UI**: http://your-server:8000
 
 Configure via the web UI after first start, or create `/srv/data/noip/config.json` manually.
-The configuration is stored in `/srv/data/noip/`
 
 ### Media Stack
 
@@ -130,16 +119,15 @@ The configuration is stored in `/srv/data/noip/`
 - **Data**: `/srv/data/media/`
 - **Media**: `/srv/media/`
 
-Access via NGINX Proxy Manager after configuring proxy hosts.
+## Backup
 
-## State Management
+### What to Backup
 
-### Backed Up
+- **`/srv/data/`** - All container configs and databases (critical)
+- **`env/secrets.env`** - Secrets file (critical)
+- **Git repository** - Infrastructure as code
 
-- `/srv/data/` - All container configs and databases
-- Git repository
-
-### Not Backed Up (Disposable)
+### What NOT to Backup (Disposable)
 
 - OS
 - Containers
@@ -151,7 +139,7 @@ Access via NGINX Proxy Manager after configuring proxy hosts.
 - Stored separately in `/srv/media/`
 - Requires separate backup strategy (external drive, cloud, etc.)
 
-## Recovery ("Fuck It" Recovery)
+## Recovery
 
 If the OS is wiped or you're starting fresh:
 
@@ -174,7 +162,6 @@ If the OS is wiped or you're starting fresh:
 
 Example:
 ```yaml
-version: '3.8'
 services:
   my-service:
     image: my-service:latest
@@ -186,35 +173,6 @@ networks:
   proxy:
     external: true
 ```
-
-## Convergence Model
-
-The `apply.sh` script is the convergence mechanism:
-
-1. **git pull** - Get latest repo state
-2. **./scripts/apply.sh** - Apply all compose stacks
-
-This script:
-- Loops through all compose stacks
-- Runs `docker compose up -d` for each
-- Destroys drift by reapplying declared state
-- Manual changes are overwritten by repo state
-
-**No Ansible, no Terraform** - just Git + Docker Compose.
-
-## Out of Scope (For Now)
-
-- Home Assistant
-- CI/CD (but architecture allows it later)
-- Monitoring
-- Advanced secrets management (Vault, etc.)
-- Host configuration management tools
-
-## Mental Model
-
-> "My homelab is a Git repo that happens to be running somewhere."
-
-The machine is irrelevant. Reinstalling should be boring.
 
 ## Troubleshooting
 
@@ -231,20 +189,7 @@ The machine is irrelevant. Reinstalling should be boring.
 - Check what's using the port: `sudo netstat -tulpn | grep <port>`
 - Adjust ports in docker-compose.yml if needed
 
-## Contributing
-
-This is a personal homelab, but the architecture is designed to be:
-- Reproducible
-- Documented
-- Maintainable
-
-When adding services, follow the patterns:
-- One compose file per logical service/stack
-- Use the `proxy` network for web services
-- Store data in `/srv/data/<service>/`
-- Document in README if it's a core service
-
-## License
-
-Personal use. Do whatever you want.
-
+**Container restarting**:
+- Check logs: `cd docker/<service> && docker compose logs`
+- Verify configuration files exist (e.g., `/srv/data/noip/config.json` for noip)
+- Check environment variables are set correctly
