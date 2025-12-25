@@ -87,9 +87,9 @@ services:
       timeout: 10s
       retries: 3
 
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
     restart: unless-stopped
     ports:
       - "5055:5055"
@@ -98,7 +98,7 @@ services:
       - PGID=${PGID:-1000}
       - TZ=${TZ:-UTC}
     volumes:
-      - /srv/data/media/overseerr:/config
+      - /srv/data/media/jellyseerr:/app/config
     networks:
       - proxy
     healthcheck:

@@ -71,37 +71,19 @@ apply_stack() {
     set +a
     
     # Apply the stack
-    # env_file in compose files will load variables into containers
-    # Exported variables above are used for ${VAR} substitution
     docker compose up -d --remove-orphans
     
     cd "$REPO_ROOT"
     log_info "Stack $stack_name applied"
 }
 
-# Apply stacks in dependency order
+# Apply all stacks
 log_info "Starting convergence..."
 log_info ""
 
-# 1. Proxy first (other services depend on it)
-if [[ -d "docker/nginx" ]]; then
-    apply_stack "docker/nginx"
-fi
-
-# 2. No-IP (independent)
-if [[ -d "docker/noip" ]]; then
-    apply_stack "docker/noip"
-fi
-
-# 3. ARR stack (media services)
-if [[ -d "docker/arr" ]]; then
-    apply_stack "docker/arr"
-fi
-
-# 4. Any other stacks (alphabetically)
+# Apply all stacks found in docker/ directory
 for stack_dir in docker/*/; do
-    stack_name=$(basename "$stack_dir")
-    if [[ "$stack_name" != "nginx" && "$stack_name" != "noip" && "$stack_name" != "arr" && "$stack_name" != "jellyfin" ]]; then
+    if [[ -f "$stack_dir/docker-compose.yml" ]]; then
         apply_stack "$stack_dir"
     fi
 done

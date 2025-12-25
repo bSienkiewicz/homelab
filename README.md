@@ -97,7 +97,7 @@ cd docker/<stack-name> && docker compose logs -f
 ### Media Stack (ARR)
 
 - **Location**: `docker/arr/`
-- **Services**: Prowlarr, Radarr, Sonarr, qBittorrent, Overseerr, Bazarr, Jellyfin
+- **Services**: Prowlarr, Radarr, Sonarr, qBittorrent, Jellyseerr, Bazarr, Jellyfin
 - **Data**: `/srv/data/media/` and `/srv/data/jellyfin/`
 - **Media**: `/srv/media/`
 
@@ -106,7 +106,7 @@ cd docker/<stack-name> && docker compose logs -f
 - **Radarr**: http://your-server:7878
 - **Sonarr**: http://your-server:8989
 - **qBittorrent**: http://your-server:8080
-- **Overseerr**: http://your-server:5055
+- **Jellyseerr**: http://your-server:5055
 - **Bazarr**: http://your-server:6767
 - **Jellyfin**: http://your-server:8096
 
