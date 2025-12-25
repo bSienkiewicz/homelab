@@ -8,21 +8,10 @@ services:
     volumes:
       - /srv/data/noip:/updater/data
     environment:
-      - PERIOD=${NOIP_PERIOD:-5m}
-      - LOG_LEVEL=${NOIP_LOG_LEVEL:-INFO}
-      - ROOT_URL=${NOIP_ROOT_URL:-}
-      - LISTENING_PORT=${NOIP_LISTENING_PORT:-8000}
-      - PUBLICIP_FETCHERS=${NOIP_PUBLICIP_FETCHERS:-opendns,ifconfig,icanhazip,ipify}
-      - PUBLICIP_V4_SERVERS=${NOIP_PUBLICIP_V4_SERVERS:-opendns,ifconfig,icanhazip,ipify}
-      - PUBLICIP_V6_SERVERS=${NOIP_PUBLICIP_V6_SERVERS:-}
-    networks:
-      - proxy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-networks:
-  proxy:
-    external: true
+      - PERIOD=5m
+      - LOG_LEVEL=info
+      - PUBLICIP_FETCHERS=ipifyorg
+      - PROVIDERS=noip
+      - NOIP_USERNAME=${NOIP_USER}
+      - NOIP_PASSWORD=${NOIP_PASS}
+      - NOIP_HOSTNAMES=${NOIP_HOST}

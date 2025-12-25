@@ -108,9 +108,20 @@ cd docker/nginx && docker compose restart
 
 - **Location**: `docker/noip/`
 - **Data**: `/srv/data/noip/`
-- **Web UI**: http://your-server:8000
+- **Web UI**: http://your-server:8000 (optional, for monitoring)
 
-Configure via the web UI after first start, or create `/srv/data/noip/config.json` manually.
+**Configuration**: Set the following in `env/secrets.env`:
+- `NOIP_USER` - Your No-IP username
+- `NOIP_PASS` - Your No-IP password (or DDNS key)
+- `NOIP_HOST` - Your hostname (e.g., `example.ddns.net`)
+
+The container will automatically update your No-IP hostname when your public IP changes.
+
+**Troubleshooting**: If the container fails to start with "fetcher is not valid" error, delete any existing config file:
+```bash
+rm /srv/data/noip/config.json
+```
+Then restart the container to use environment variables.
 
 ### Media Stack
 
@@ -118,6 +129,12 @@ Configure via the web UI after first start, or create `/srv/data/noip/config.jso
 - **Services**: Prowlarr, Radarr, Sonarr, qBittorrent
 - **Data**: `/srv/data/media/`
 - **Media**: `/srv/media/`
+
+**Access**: Services are accessible directly via IP:PORT:
+- **Prowlarr**: http://your-server:9696
+- **Radarr**: http://your-server:7878
+- **Sonarr**: http://your-server:8989
+- **qBittorrent**: http://your-server:8080
 
 ## Backup
 
@@ -193,3 +210,9 @@ networks:
 - Check logs: `cd docker/<service> && docker compose logs`
 - Verify configuration files exist (e.g., `/srv/data/noip/config.json` for noip)
 - Check environment variables are set correctly
+- For noip: If you see "fetcher is not valid" error, delete `/srv/data/noip/config.json` to use environment variables instead
+
+**Services not accessible via direct IP:PORT**:
+- Check that ports are mapped in docker-compose.yml (format: `"7878:7878"`)
+- Verify firewall allows the ports: `sudo ufw status`
+- Check if port is in use: `sudo netstat -tulpn | grep <port>`
