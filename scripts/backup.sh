@@ -12,11 +12,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "$1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "$1"
 }
 
 log_error() {
@@ -38,22 +38,60 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_NAME="backup_${GIT_BRANCH}_${GIT_COMMIT}_${TIMESTAMP}.tar.gz"
 BACKUP_PATH="/srv/backup/${BACKUP_NAME}"
 
-log_info "Creating backup..."
-log_info "Branch: ${GIT_BRANCH}"
-log_info "Commit: ${GIT_COMMIT}"
-log_info "Timestamp: ${TIMESTAMP}"
+# Check if source directory exists
+if [[ ! -d "/srv/data" ]]; then
+    log_error "Source directory /srv/data does not exist!"
+    exit 1
+fi
 
-# Create backup
-if tar -czf "${BACKUP_PATH}" -C /srv data 2>/dev/null; then
+# Check if backup directory exists, create if not
+if [[ ! -d "/srv/backup" ]]; then
+    log_warn "Backup directory /srv/backup does not exist, creating..."
+    mkdir -p /srv/backup || {
+        log_error "Failed to create backup directory /srv/backup"
+        exit 1
+    }
+fi
+
+# Create backup with error output visible
+log_info "Backing up /srv/data to ${BACKUP_PATH}..."
+TAR_OUTPUT=$(tar -czf "${BACKUP_PATH}" -C /srv data 2>&1)
+TAR_EXIT_CODE=$?
+
+if [[ ${TAR_EXIT_CODE} -eq 0 ]]; then
+    # Verify backup was created and has content
+    if [[ ! -f "${BACKUP_PATH}" ]]; then
+        log_error "Backup file was not created!"
+        exit 1
+    fi
+    
     BACKUP_SIZE=$(du -h "${BACKUP_PATH}" | cut -f1)
+    if [[ "${BACKUP_SIZE}" == "0" ]] || [[ -z "${BACKUP_SIZE}" ]]; then
+        log_error "Backup file is empty or invalid!"
+        rm -f "${BACKUP_PATH}"
+        exit 1
+    fi
+    
     log_info "Backup created: ${BACKUP_NAME} (${BACKUP_SIZE})"
     
     # Keep only last 10 backups
     log_info "Cleaning old backups (keeping last 10)..."
-    cd /srv/backup
+    cd /srv/backup || {
+        log_error "Failed to change to backup directory"
+        exit 1
+    }
     ls -t backup_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
     log_info "Backup complete!"
 else
-    log_error "Backup failed!"
+    log_error "Backup failed with exit code: ${TAR_EXIT_CODE}"
+    if [[ -n "${TAR_OUTPUT}" ]]; then
+        log_error "Error details: ${TAR_OUTPUT}"
+    fi
+    log_error "Common causes:"
+    log_error "  - Insufficient disk space (check: df -h /srv/backup)"
+    log_error "  - Permission denied (check: ls -ld /srv/backup /srv/data)"
+    log_error "  - Source directory missing or empty"
+    # Clean up partial backup if it exists
+    [[ -f "${BACKUP_PATH}" ]] && rm -f "${BACKUP_PATH}"
     exit 1
 fi
