@@ -1,6 +1,5 @@
 #!/bin/bash
 # Convergence script: applies repo state to machine
-# This script destroys drift by reapplying all compose stacks
 # Run with: ./scripts/apply.sh
 
 set -euo pipefail
@@ -36,9 +35,9 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 # Check if secrets.env exists
-if [[ ! -f "env/secrets.env" ]]; then
-    log_error "env/secrets.env not found!"
-    log_error "Copy env/secrets.env.example to env/secrets.env and fill in your secrets"
+if [[ ! -f "secrets.env" ]]; then
+    log_error "secrets.env not found!"
+    log_error "Copy secrets.env.example to secrets.env and fill in your secrets"
     exit 1
 fi
 
@@ -51,44 +50,18 @@ else
     log_info "Network 'proxy' already exists"
 fi
 
-# Function to apply a compose stack
-apply_stack() {
-    local stack_dir="$1"
-    local stack_name=$(basename "$stack_dir")
-    
-    if [[ ! -f "$stack_dir/docker-compose.yml" ]]; then
-        log_warn "No docker-compose.yml found in $stack_dir, skipping..."
-        return
-    fi
-    
-    log_info "Applying stack: $stack_name"
-    cd "$stack_dir"
-    
-    # Export environment variables for ${VAR} substitution in compose files
-    set -a
-    source "$REPO_ROOT/env/common.env" 2>/dev/null || true
-    source "$REPO_ROOT/env/secrets.env" 2>/dev/null || true
-    set +a
-    
-    # Apply the stack
-    docker compose up -d --remove-orphans
-    
-    cd "$REPO_ROOT"
-    log_info "Stack $stack_name applied"
-}
+# Export environment variables for ${VAR} substitution in compose file
+log_info "Loading environment variables..."
+set -a
+source "$REPO_ROOT/common.env" 2>/dev/null || true
+source "$REPO_ROOT/secrets.env" 2>/dev/null || true
+set +a
 
-# Apply all stacks
-log_info "Starting convergence..."
-log_info ""
-
-# Apply all stacks found in docker/ directory
-for stack_dir in docker/*/; do
-    if [[ -f "$stack_dir/docker-compose.yml" ]]; then
-        apply_stack "$stack_dir"
-    fi
-done
+# Apply the stack
+log_info "Applying docker-compose.yml..."
+docker compose up -d --remove-orphans
 
 log_info ""
 log_info "Convergence complete!"
 log_info ""
-log_info "To check status: ./scripts/status.sh"
+log_info "To check status: docker compose ps"

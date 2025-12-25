@@ -1,4 +1,124 @@
 services:
+  # Reverse Proxy
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8880:81"  # Admin UI
+    volumes:
+      - /srv/data/nginx/data:/data
+      - /srv/data/nginx/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+    environment:
+      - DB_SQLITE_FILE=/data/database.sqlite
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:81"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Dynamic DNS
+  noip:
+    image: qmcgaw/ddns-updater:latest
+    container_name: noip-ddns
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - /srv/data/noip:/updater/data
+    env_file:
+      - common.env
+      - secrets.env
+    environment:
+      - PERIOD=5m
+      - LOG_LEVEL=info
+      - PUBLICIP_HTTP_PROVIDERS=all
+    networks:
+      - proxy
+
+  # Docker Management
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /srv/data/portainer:/data
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # File Sharing
+  samba:
+    image: dperson/samba:latest
+    container_name: samba
+    restart: unless-stopped
+    ports:
+      - "445:445"
+      - "139:139"
+    env_file:
+      - common.env
+      - secrets.env
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/smb:/shares
+    command: >
+      -s "smb;/shares;yes;no;yes;all;none"
+      -u "samba;${SAMBA_PASSWORD:-samba}"
+      -S
+      -p
+
+  # VPN Client
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8888:8888/tcp"  # HTTP proxy
+      - "8388:8388/tcp"  # Shadowsocks
+      - "8388:8388/udp"  # Shadowsocks
+    env_file:
+      - common.env
+      - secrets.env
+    environment:
+      - VPN_SERVICE_PROVIDER=${GLUETUN_VPN_PROVIDER:-}
+      - VPN_TYPE=${GLUETUN_VPN_TYPE:-}
+      - SERVER_COUNTRIES=${GLUETUN_SERVER_COUNTRIES:-}
+      - SERVER_CITIES=${GLUETUN_SERVER_CITIES:-}
+      - SERVER_NAMES=${GLUETUN_SERVER_NAMES:-}
+      - OPENVPN_USER=${GLUETUN_OPENVPN_USER:-}
+      - OPENVPN_PASSWORD=${GLUETUN_OPENVPN_PASSWORD:-}
+      - WIREGUARD_PRIVATE_KEY=${GLUETUN_WIREGUARD_PRIVATE_KEY:-}
+      - WIREGUARD_ADDRESSES=${GLUETUN_WIREGUARD_ADDRESSES:-}
+      - WIREGUARD_PRESHARED_KEY=${GLUETUN_WIREGUARD_PRESHARED_KEY:-}
+      - UPDATER_PERIOD=${GLUETUN_UPDATER_PERIOD:-24h}
+    volumes:
+      - /srv/data/gluetun:/gluetun
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/v1/openvpn/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Media Stack - Indexers
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
@@ -19,6 +139,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - Movies
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
@@ -41,6 +162,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - TV Shows
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
@@ -63,6 +185,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - Downloader
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
@@ -87,6 +210,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - Request Management
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
@@ -107,6 +231,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - Subtitles
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
@@ -129,6 +254,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Media Stack - Media Server
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
@@ -160,3 +286,4 @@ services:
 networks:
   proxy:
     external: true
+

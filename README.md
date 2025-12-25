@@ -24,8 +24,8 @@ A fully replicable, disposable homelab built on Ubuntu Server with Docker Compos
 
 3. **Configure secrets**:
    ```bash
-   cp env/secrets.env.example env/secrets.env
-   vim env/secrets.env  # Fill in your secrets
+   cp secrets.env.example secrets.env
+   vim secrets.env  # Fill in your secrets
    ```
 
 4. **Apply the infrastructure**:
@@ -35,7 +35,7 @@ A fully replicable, disposable homelab built on Ubuntu Server with Docker Compos
 
 5. **Access services**:
    - Services are accessible via direct ports (e.g., `http://your-server-ip:7878` for Radarr)
-   - NGINX Proxy Manager: http://your-server-ip:8080 (default: `admin@example.com` / `changeme`)
+   - NGINX Proxy Manager: http://your-server-ip:8880 (default: `admin@example.com` / `changeme`)
    - All services will auto-start on boot via systemd service
 
 ### Auto-Start on Boot
@@ -57,132 +57,109 @@ sudo journalctl -u homelab -f   # View logs
 ./scripts/update.sh
 ```
 
-**Check status of all containers**:
+**Check status**:
 ```bash
+docker compose ps
+# or
 ./scripts/status.sh
-```
-
-**Check status of specific stack**:
-```bash
-cd docker/<stack-name> && docker compose ps
 ```
 
 **View logs**:
 ```bash
-cd docker/<stack-name> && docker compose logs -f
+docker compose logs -f [service-name]
+```
+
+## Repository Structure
+
+```
+homelab/
+├── bootstrap/
+│   ├── install.sh        # Idempotent OS bootstrap
+│   ├── sanity.sh         # Health checks
+│   └── homelab.service   # Systemd service template
+├── scripts/
+│   ├── apply.sh          # Convergence script (applies repo state)
+│   ├── update.sh         # Git pull + apply
+│   └── status.sh         # Check container status
+├── docker-compose.yml     # All services in one file
+├── common.env            # Shared environment variables (committed)
+├── secrets.env.example   # Secrets template
+├── .gitignore
+└── README.md
 ```
 
 ## Services
 
-### Reverse Proxy (NGINX Proxy Manager)
+All services are defined in `docker-compose.yml`:
 
-- **Location**: `docker/nginx/`
-- **Admin UI**: http://your-server:8080
-- **Data**: `/srv/data/nginx/` (all configuration and SSL certificates - fully backupable)
-- **Ports**: 80 (HTTP), 443 (HTTPS), 8080 (Admin UI)
+### Reverse Proxy
+- **NGINX Proxy Manager**: Ports 80, 443, 8880 (Admin UI)
+- **Data**: `/srv/data/nginx/`
 
-
-**Backup**: The entire NGINX Proxy Manager configuration is stored in:
-- `/srv/data/nginx/data/` - Configuration database and settings
-- `/srv/data/nginx/letsencrypt/` - SSL certificates
-
-### No-IP Dynamic DNS
-
-- **Location**: `docker/noip/`
+### Dynamic DNS
+- **No-IP**: Port 8000 (Web UI)
 - **Data**: `/srv/data/noip/`
-- **Web UI**: http://your-server:8000
+- Configure via web UI at http://your-server:8000
 
-**Configuration**: Configure via the web UI after first start in `/srv/data/noip/config.json` manually.
+### Docker Management
+- **Portainer**: Port 9000
+- **Data**: `/srv/data/portainer/`
 
-### Media Stack (ARR)
+### File Sharing
+- **Samba**: Ports 445 (SMB), 139 (NetBIOS)
+- **Shares**: `/srv/smb/`
+- Username: `samba`, Password: Set via `SAMBA_PASSWORD` in `secrets.env`
 
-- **Location**: `docker/arr/`
-- **Services**: Prowlarr, Radarr, Sonarr, qBittorrent, Jellyseerr, Bazarr, Jellyfin
+### VPN Client
+- **Gluetun**: Ports 8888 (HTTP proxy), 8388 (Shadowsocks)
+- **Data**: `/srv/data/gluetun/`
+- Configure VPN provider in `secrets.env`
+
+### Media Stack
+- **Prowlarr**: Port 9696 (Indexer manager)
+- **Radarr**: Port 7878 (Movies)
+- **Sonarr**: Port 8989 (TV Shows)
+- **qBittorrent**: Port 8080 (Downloader)
+- **Jellyseerr**: Port 5055 (Request management)
+- **Bazarr**: Port 6767 (Subtitles)
+- **Jellyfin**: Port 8096 (Media server)
 - **Data**: `/srv/data/media/` and `/srv/data/jellyfin/`
 - **Media**: `/srv/media/`
-
-**Access**: Services are accessible directly via IP:PORT:
-- **Prowlarr**: http://your-server:9696
-- **Radarr**: http://your-server:7878
-- **Sonarr**: http://your-server:8989
-- **qBittorrent**: http://your-server:8080
-- **Jellyseerr**: http://your-server:5055
-- **Bazarr**: http://your-server:6767
-- **Jellyfin**: http://your-server:8096
-
-### Portainer
-
-- **Location**: `docker/portainer/`
-- **Data**: `/srv/data/portainer/`
-- **Access**: http://your-server:9000
-
-
-### Samba
-
-- **Location**: `docker/samba/`
-- **Shares**: `/srv/smb/`
-
-**Access**: 
-- SMB/CIFS: `\\your-server-ip\smb` or `smb://your-server-ip/smb`
-- Ports: 445 (SMB), 139 (NetBIOS)
-- Username: `samba`
-- Password: Set via `SAMBA_PASSWORD` in `env/secrets.env` (default: `samba`)
 
 ## Backup
 
 ### What to Backup
-
 - **`/srv/data/`** - All container configs and databases (critical)
-- **`env/secrets.env`** - Secrets file (critical)
+- **`secrets.env`** - Secrets file (critical)
 - **Git repository** - Infrastructure as code
-- **`/srv/smb/`** - Samba shares (backup separately as needed)
 
 ### What NOT to Backup (Disposable)
-
 - OS
 - Containers
 - Images
 - Docker runtime state
 
 ### Media
-
 - Stored separately in `/srv/media/`
 - Requires separate backup strategy (external drive, cloud, etc.)
 
 ## Recovery
-
-If the OS is wiped or you're starting fresh:
-
 1. Install Ubuntu Server LTS
 2. Clone the repository
 3. Run `sudo bash bootstrap/install.sh`
-4. Copy `env/secrets.env` (from backup) or recreate it
+4. Copy `secrets.env` (from backup) or recreate it
 5. Restore `/srv/data/` from backup
 6. Run `./scripts/apply.sh`
 
-**Time to recovery**: Minutes, not days.
 
-## Adding New Services
+## Adding/Removing Services
 
-1. Create a new directory: `docker/my-service/`
-2. Create `docker-compose.yml` in that directory
-3. Use the `proxy` network for services that need reverse proxy
-4. Store persistent data in `/srv/data/my-service/`
-5. Run `./scripts/apply.sh`
+Edit `docker-compose.yml` directly:
+- Add a new service section
+- Remove a service section
+- Run `./scripts/apply.sh` to apply changes
 
-Example:
-```yaml
-services:
-  my-service:
-    image: my-service:latest
-    networks:
-      - proxy
-    volumes:
-      - /srv/data/my-service:/data
-networks:
-  proxy:
-    external: true
-```
+The `--remove-orphans` flag automatically removes containers that are no longer in the compose file.
 
 ## Troubleshooting
 
@@ -191,21 +168,11 @@ networks:
 - Or use `sudo` (not recommended for daily use)
 
 **Service won't start**:
-- Check logs: `cd docker/<service> && docker compose logs`
-- Verify secrets.env is configured
+- Check logs: `docker compose logs [service-name]`
+- Verify `secrets.env` is configured
 - Check network exists: `docker network ls | grep proxy`
 
 **Port conflicts**:
 - Check what's using the port: `sudo netstat -tulpn | grep <port>`
-- Adjust ports in docker-compose.yml if needed
+- Adjust ports in `docker-compose.yml` if needed
 
-**Container restarting**:
-- Check logs: `cd docker/<service> && docker compose logs`
-- Verify configuration files exist (e.g., `/srv/data/noip/config.json` for noip)
-- Check environment variables are set correctly
-- For noip: If you see "fetcher is not valid" error, delete `/srv/data/noip/config.json` to use environment variables instead
-
-**Services not accessible via direct IP:PORT**:
-- Check that ports are mapped in docker-compose.yml (format: `"7878:7878"`)
-- Verify firewall allows the ports: `sudo ufw status`
-- Check if port is in use: `sudo netstat -tulpn | grep <port>`

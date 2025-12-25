@@ -66,7 +66,7 @@ if bash "$SCRIPT_DIR/apply.sh"; then
     log_info ""
     log_info "Update complete!"
     log_info ""
-    log_info "To check status: ./scripts/status.sh"
+    log_info "To check status: docker compose ps"
 else
     log_error "Apply failed!"
     exit 1

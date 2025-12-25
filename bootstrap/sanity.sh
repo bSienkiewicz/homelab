@@ -60,45 +60,25 @@ check "Directory /srv/media exists" test -d /srv/media
 check "Directory /srv/smb exists" test -d /srv/smb
 
 # File checks
-check "env/common.env exists" test -f env/common.env
-if [[ -f env/secrets.env ]]; then
-    echo -e "${GREEN}✓${NC} env/secrets.env exists"
+check "common.env exists" test -f common.env
+check "docker-compose.yml exists" test -f docker-compose.yml
+if [[ -f secrets.env ]]; then
+    echo -e "${GREEN}✓${NC} secrets.env exists"
 else
-    warn "env/secrets.env does not exist (copy from env/secrets.env.example)"
-fi
-
-# Compose file checks
-compose_count=0
-for stack_dir in docker/*/; do
-    if [[ -f "$stack_dir/docker-compose.yml" ]]; then
-        ((compose_count++)) || true
-    fi
-done
-
-if [[ $compose_count -gt 0 ]]; then
-    echo -e "${GREEN}✓${NC} Found $compose_count compose stack(s)"
-else
-    warn "No compose stacks found in docker/"
+    warn "secrets.env does not exist (copy from secrets.env.example)"
 fi
 
 # Service health checks
-if docker info >/dev/null 2>&1; then
+if docker info >/dev/null 2>&1 && [[ -f docker-compose.yml ]]; then
     echo ""
     echo "Service status:"
-    for stack_dir in docker/*/; do
-        if [[ -f "$stack_dir/docker-compose.yml" ]]; then
-            stack_name=$(basename "$stack_dir")
-            cd "$stack_dir"
-            if docker compose ps --format json 2>/dev/null | grep -q "running"; then
-                running=$(docker compose ps --format json 2>/dev/null | jq -r 'select(.State == "running") | .Name' | wc -l)
-                total=$(docker compose ps --format json 2>/dev/null | jq -r '.Name' | wc -l)
-                echo "  $stack_name: $running/$total containers running"
-            else
-                echo "  $stack_name: no containers running"
-            fi
-            cd "$REPO_ROOT"
-        fi
-    done
+    running=$(docker compose ps --format json 2>/dev/null | jq -r 'select(.State == "running") | .Name' | wc -l) || running=0
+    total=$(docker compose ps --format json 2>/dev/null | jq -r '.Name' | wc -l) || total=0
+    if [[ $total -gt 0 ]]; then
+        echo "  $running/$total containers running"
+    else
+        echo "  no containers running"
+    fi
 fi
 
 echo ""
@@ -112,4 +92,3 @@ else
     echo -e "${RED}Checks failed with $errors error(s) and $warnings warning(s)${NC}"
     exit 1
 fi
-
