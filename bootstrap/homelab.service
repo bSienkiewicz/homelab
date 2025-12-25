@@ -1,0 +1,23 @@
+[Unit]
+Description=Homelab Convergence Service
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Placeholders are automatically replaced by bootstrap/install.sh:
+# REPLACE_USER -> your username (from $SUDO_USER)
+# REPLACE_REPO_PATH -> absolute path to homelab repo
+User=REPLACE_USER
+Group=REPLACE_USER  # Primary group (typically same as username)
+WorkingDirectory=REPLACE_REPO_PATH
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=REPLACE_REPO_PATH/scripts/apply.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

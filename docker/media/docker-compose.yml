@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/media/prowlarr:/config
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9696"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/media/radarr:/config
+      - /srv/media/movies:/movies
+      - /srv/media/downloads:/downloads
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7878"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /srv/data/media/sonarr:/config
+      - /srv/media/tv:/tv
+      - /srv/media/downloads:/downloads
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8989"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - WEBUI_PORT=8080
+    volumes:
+      - /srv/data/media/qbittorrent:/config
+      - /srv/media/downloads:/downloads
+    ports:
+      - "6881:6881"
+      - "6881:6881/udp"
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  proxy:
+    external: true
+
