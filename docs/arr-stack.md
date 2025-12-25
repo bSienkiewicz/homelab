@@ -39,45 +39,9 @@ Flaresolverr is required for indexers protected by CloudFlare (like 1337x.to).
    - This enables CloudFlare bypass for protected indexers
 3. Go to **Settings** → **Indexers**
 4. Add indexers (Jackett, Prowlarr, or direct indexers)
-5. For CloudFlare-protected indexers (like 1337x.to):
-   - When adding the indexer, enable **Use FlareSolverr**
-   - Prowlarr will automatically use Flaresolverr to bypass CloudFlare
-6. Test indexers to verify they work
-
-**Important: Configure Indexer Settings to Avoid Dead Downloads**
-
-For each indexer, configure these settings:
-
-1. **Categories** (Critical):
-   - Go to **Settings** → **Indexers** → Select your indexer → **Categories**
-   - For movie indexers: Select `2000` (Movies)
-   - For TV indexers: Select `5000` (TV)
-   - This filters out irrelevant content and reduces dead downloads
-
-2. **Minimum Seeders** (Recommended):
-   - In indexer settings, look for **Minimum Seeders** or **Seed Ratio**
-   - Set to `1` or `2` minimum
-   - Filters out completely dead torrents
-   - Note: Not all indexers support this feature
-
-3. **Indexer Priority**:
-   - Set **Priority** (lower number = checked first)
-   - Put reliable indexers at priority `1-10`
-   - Less reliable ones at `20+`
-   - Radarr/Sonarr will try indexers in priority order
-
-4. **Test Indexers Regularly**:
-   - Use **Test** button on each indexer
-   - Remove or disable non-working indexers
-   - Dead indexers cause failed searches and delays
-
-5. **Sync to Radarr/Sonarr**:
-   - Go to **Settings** → **Apps** → Add Radarr and Sonarr
-   - Enable **Sync Indexers** checkbox
-   - This automatically adds/updates indexers in Radarr/Sonarr
-   - Set **Sync Categories**:
-     - Radarr: `2000` (Movies only)
-     - Sonarr: `5000` (TV only)
+5. For CloudFlare-protected indexers:
+   - Add proxy in **Settings** → **Indexer Proxies**
+   - Use `http://flaresolverr:8191`
 
 ### 4. Configure qBittorrent
 
@@ -187,42 +151,4 @@ Jellyfin (playback)
     ↓
 Bazarr (subtitles)
 ```
-
-## Quick Reference
-
-**API Keys** (needed for integrations):
-- Prowlarr: Settings → General → API Key
-- Radarr: Settings → General → API Key
-- Sonarr: Settings → General → API Key
-- Jellyfin: Dashboard → Settings → API Keys
-
-**Service URLs** (for container-to-container communication):
-- Flaresolverr: `http://flaresolverr:8191`
-- Prowlarr: `http://prowlarr:9696`
-- Radarr: `http://radarr:7878`
-- Sonarr: `http://sonarr:8989`
-- qBittorrent: `http://qbittorrent:8080`
-- Jellyfin: `http://jellyfin:8096`
-
-## Troubleshooting
-
-**Downloads not starting**:
-- Verify qBittorrent credentials in Radarr/Sonarr
-- Check qBittorrent is accessible: `docker compose logs qbittorrent`
-- Verify download path permissions
-
-**Indexers not working**:
-- Test indexers in Prowlarr first
-- Verify API key is correct in Radarr/Sonarr
-- Check Prowlarr logs: `docker compose logs prowlarr`
-- For CloudFlare-protected indexers:
-  - Verify Flaresolverr is running: `docker compose ps flaresolverr`
-  - Check Flaresolverr URL is set in Prowlarr Settings → General: `http://flaresolverr:8191`
-  - Enable "Use FlareSolverr" checkbox on the indexer
-  - Check Flaresolverr logs: `docker compose logs flaresolverr`
-
-**Media not organizing**:
-- Check root folder paths in Radarr/Sonarr
-- Verify media management settings are enabled
-- Check file permissions on `/srv/media/`
 

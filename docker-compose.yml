@@ -214,7 +214,7 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: unless-stopped
-    
+
     # IF USING GLUETUN, COMMENT OUT THE FOLLOWING:
     # ports:
     #  - "6881:6881"
@@ -303,9 +303,9 @@ services:
       - JELLYFIN_PublishedServerUrl=${JELLYFIN_PUBLISHED_SERVER_URL:-}
     volumes:
       - /srv/data/jellyfin:/config
-      - /srv/media/movies:/data/movies:ro
-      - /srv/media/tv:/data/tv:ro
-      - /srv/media/music:/data/music:ro
+      - /srv/media/movies:/data/movies:rw
+      - /srv/media/tv:/data/tv:rw
+      - /srv/media/music:/data/music:rw
     devices:
       - /dev/dri:/dev/dri
     networks:
