@@ -107,6 +107,7 @@ ufw allow 22/tcp comment 'SSH'
 ufw allow 80/tcp comment 'HTTP'
 ufw allow 443/tcp comment 'HTTPS'
 ufw allow 8080/tcp comment 'NGINX Proxy Manager Admin' || true
+ufw allow 8082/tcp comment 'File Browser' || true
 ufw allow 445/tcp comment 'SMB'
 ufw allow 139/tcp comment 'NetBIOS'
 

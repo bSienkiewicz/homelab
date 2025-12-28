@@ -105,6 +105,12 @@ All services are defined in `docker-compose.yml`:
 - **Portainer**: Port 9000
 - **Data**: `/srv/data/portainer/`
 
+### File Browser
+- **File Browser**: Port 8082
+- **Data**: `/srv/data/filebrowser/`
+- Web-based file manager for browsing and managing files in `/srv`
+- Default credentials: `admin` / `admin` (change on first login)
+
 ### Dashboard
 - **Glance**: Port 8081
 - **Configuration**: `config/glance.yml` (mounted directly from repo)
