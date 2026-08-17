@@ -16,7 +16,7 @@ services:
     environment:
       - DB_SQLITE_FILE=/data/database.sqlite
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:81"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -55,6 +55,8 @@ services:
       - TZ=${TZ:-UTC}
     volumes:
       - /srv/smb:/shares
+    networks:
+      - proxy
     command: >
       -s "smb;/shares;yes;no;yes;all;none"
       -u "samba;${SAMBA_PASSWORD:-samba}"
@@ -68,6 +70,8 @@ services:
       - '5006:5006'
     volumes:
       - ./actual-data:/data
+    networks:
+      - proxy
     healthcheck:
       test: ['CMD-SHELL', 'node scripts/health-check.js']
       interval: 60s
