@@ -70,7 +70,7 @@ services:
     ports:
       - '5006:5006'
     volumes:
-      - ./actual-data:/data
+      - /srv/data/actual-data:/data
     networks:
       - proxy
     healthcheck:
@@ -86,7 +86,7 @@ services:
     container_name: homeassistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
-      - /PATH_TO_YOUR_CONFIG:/config
+      - /srv/data/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
     restart: unless-stopped
