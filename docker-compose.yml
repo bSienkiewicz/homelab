@@ -63,7 +63,7 @@ services:
       -S
       -p
 
-      
+  # Actual Budget Server
   actual_server:
     image: docker.io/actualbudget/actual-server:latest
     container_name: actual_server
@@ -80,6 +80,22 @@ services:
       retries: 3
       start_period: 20s
     restart: unless-stopped
+
+  # Home Assistant
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /PATH_TO_YOUR_CONFIG:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    networks:
+      - proxy
+    environment:
+      TZ: Europe/Warsaw
 
 networks:
   proxy:
