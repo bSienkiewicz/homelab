@@ -1,7 +1,6 @@
 #!/bin/bash
-# Backup script: creates tar archive of /srv/data with timestamp and git info
+# Backup script: restic snapshot of /srv/data, with container pause/unpause
 # Run with: ./scripts/backup.sh
-# Typically triggered by GitHub webhook on push to main
 
 set -euo pipefail
 
@@ -12,11 +11,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "$1"
+    echo -e "${GREEN}[INFO]${NC} $1"
 }
 
 log_warn() {
-    echo -e "$1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
@@ -29,69 +28,73 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT"
 
-# Get git info
-GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DATA_PATH="/srv/data"
 
-# Create backup filename
-BACKUP_NAME="backup_${GIT_BRANCH}_${GIT_COMMIT}_${TIMESTAMP}.tar.gz"
-BACKUP_PATH="/srv/backup/${BACKUP_NAME}"
+# Load config
+set -a
+source "$REPO_ROOT/common.env" 2>/dev/null || true
+source "$REPO_ROOT/secrets.env" 2>/dev/null || true
+set +a
 
-# Check if source directory exists
-if [[ ! -d "/srv/data" ]]; then
-    log_error "Source directory /srv/data does not exist!"
+if [[ -z "${RESTIC_REPO:-}" || -z "${RESTIC_PASSWORD:-}" ]]; then
+    log_error "RESTIC_REPO and/or RESTIC_PASSWORD are not set."
+    log_error "Set them in secrets.env (run bootstrap/install.sh, or edit secrets.env manually)."
+    exit 1
+fi
+export RESTIC_PASSWORD
+
+if ! command -v restic &> /dev/null; then
+    log_error "restic is not installed. Run bootstrap/install.sh."
     exit 1
 fi
 
-# Check if backup directory exists, create if not
-if [[ ! -d "/srv/backup" ]]; then
-    log_warn "Backup directory /srv/backup does not exist, creating..."
-    mkdir -p /srv/backup || {
-        log_error "Failed to create backup directory /srv/backup"
-        exit 1
-    }
+if ! docker info >/dev/null 2>&1; then
+    log_error "Docker is not running."
+    exit 1
 fi
 
-# Create backup with error output visible
-log_info "Backing up service data to [[${BACKUP_PATH}]]"
-TAR_OUTPUT=$(tar -czf "${BACKUP_PATH}" -C /srv data 2>&1)
-TAR_EXIT_CODE=$?
+if [[ ! -d "$DATA_PATH" ]]; then
+    log_error "Source directory $DATA_PATH does not exist!"
+    exit 1
+fi
 
-if [[ ${TAR_EXIT_CODE} -eq 0 ]]; then
-    # Verify backup was created and has content
-    if [[ ! -f "${BACKUP_PATH}" ]]; then
-        log_error "Backup file was not created!"
-        exit 1
-    fi
-    
-    BACKUP_SIZE=$(du -h "${BACKUP_PATH}" | cut -f1)
-    if [[ "${BACKUP_SIZE}" == "0" ]] || [[ -z "${BACKUP_SIZE}" ]]; then
-        log_error "Backup file is empty or invalid!"
-        rm -f "${BACKUP_PATH}"
-        exit 1
-    fi
-    
-    log_info "Backup created: ${BACKUP_NAME} (${BACKUP_SIZE})"
-    
-    # Keep only last 10 backups
-    log_info "Cleaning old backups (keeping last 10)..."
-    cd /srv/backup || {
-        log_error "Failed to change to backup directory"
-        exit 1
-    }
-    ls -t backup_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
-    log_info "Backup complete!"
+log_info "Starting homelab backup..."
+
+# Initialize the restic repo on first use
+if ! restic -r "$RESTIC_REPO" snapshots &> /dev/null; then
+    log_warn "Restic repo not found at $RESTIC_REPO, initializing..."
+    restic -r "$RESTIC_REPO" init
+fi
+
+# Capture IDs of containers currently in 'running' state
+RUNNING_CONTAINERS=$(docker compose ps --status running -q)
+
+# Ensure paused containers always get unpaused, even if backup fails
+trap 'if [[ -n "${RUNNING_CONTAINERS:-}" ]]; then docker unpause $RUNNING_CONTAINERS 2>/dev/null || true; fi' EXIT
+
+if [[ -n "$RUNNING_CONTAINERS" ]]; then
+    log_info "Pausing running containers..."
+    docker pause $RUNNING_CONTAINERS
 else
-    log_error "Backup failed with exit code: ${TAR_EXIT_CODE}"
-    if [[ -n "${TAR_OUTPUT}" ]]; then
-        log_error "Error details: ${TAR_OUTPUT}"
-    fi
-    log_error "Common causes:"
-    log_error "  - Insufficient disk space (check: df -h /srv/backup)"
-    log_error "  - Permission denied (check: ls -ld /srv/backup /srv/data)"
-    log_error "  - Source directory missing or empty"
-    # Clean up partial backup if it exists
-    [[ -f "${BACKUP_PATH}" ]] && rm -f "${BACKUP_PATH}"
-    exit 1
+    log_info "No running containers found to pause."
 fi
+
+log_info "Running restic backup of $DATA_PATH..."
+restic -r "$RESTIC_REPO" backup "$DATA_PATH" \
+    --tag homelab \
+    --exclude="*/cache/*" \
+    --exclude="*/tmp/*"
+
+if [[ -n "$RUNNING_CONTAINERS" ]]; then
+    log_info "Unpausing containers..."
+    docker unpause $RUNNING_CONTAINERS
+fi
+
+log_info "Enforcing retention policy..."
+restic -r "$RESTIC_REPO" forget \
+    --keep-daily 7 \
+    --keep-weekly 4 \
+    --keep-monthly 12 \
+    --prune
+
+log_info "Backup completed successfully!"
