@@ -13,6 +13,8 @@ services:
       - /srv/data/nginx/letsencrypt:/etc/letsencrypt
     networks:
       - proxy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - DB_SQLITE_FILE=/data/database.sqlite
     healthcheck:
@@ -92,8 +94,6 @@ services:
     restart: unless-stopped
     privileged: true
     network_mode: host
-    networks:
-      - proxy
     environment:
       TZ: Europe/Warsaw
 
