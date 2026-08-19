@@ -97,6 +97,15 @@ services:
     environment:
       TZ: Europe/Warsaw
 
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome
+    volumes:
+      - /srv/data/esphome/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    restart: unless-stopped
+
 networks:
   proxy:
     external: true
