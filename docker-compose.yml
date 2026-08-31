@@ -105,14 +105,14 @@ services:
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
     restart: unless-stopped
-    
+
   homebridge:
     image: homebridge/homebridge:latest
     restart: always
     network_mode: host
     hostname: docker-desktop  # Optional: Set container hostname
     volumes:
-      - ./volumes/homebridge:/homebridge
+      - /srv/data/esphome/config:/homebridge
     environment:
       - TZ=Europe/Warsaw
       - ENABLE_AVAHI=1      # Optional: Enable/disable Avahi (1=enabled, 0=disabled)
